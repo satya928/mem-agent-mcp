@@ -94,11 +94,11 @@ go_to_link(link_string: str) -> bool
 
 ### Adding to a table:
 ```python
-# Find the last row and add new row after it
-old_content = "| 2024-03-15 | Joined Premium  | Active   |"
-new_content = """| 2024-03-15 | Joined Premium  | Active   |
-| 2024-03-20 | Added Family    | Active   |"""
-result = update_file("user.md", old_content, new_content)
+# Find the last row and add a new milestone after it
+old_content = "| 2024-03-01 | MVP deployed to staging | Complete |"
+new_content = """| 2024-03-01 | MVP deployed to staging | Complete |
+| 2024-04-15 | Observability stack live | In progress |"""
+result = update_file("entities/org/projects/internal_cli/index.md", old_content, new_content)
 
 # ALWAYS check the result!
 if result != True:
@@ -107,131 +107,156 @@ if result != True:
 
 Appending a new section:
 
-# Find the last line of a section and append after it
-old_content = "- favorite_color: blue"
-new_content = """- favorite_color: blue
-- favorite_food: pizza
-- favorite_movie: Inception"""
+# Find the last line of the Projects section and append another project link
+old_content = """## Projects
+- Internal CLI tooling: [[entities/org/projects/internal_cli/index.md|Internal CLI]]"""
+new_content = """## Projects
+- Internal CLI tooling: [[entities/org/projects/internal_cli/index.md|Internal CLI]]
+- API platform refresh: [[entities/org/projects/api_gateway/index.md|API Gateway Modernization]]"""
 result = update_file("user.md", old_content, new_content)
 
 Appending to a list:
 
-# Add a new item to an existing list
-old_content = """## Hobbies
-- reading
-- hiking"""
-new_content = """## Hobbies
-- reading
-- hiking
-- photography"""
-result = update_file("user.md", old_content, new_content)
+# Add a new integration to an existing list
+old_content = """## Active Integrations
+- GitHub REST API
+- AWS S3"""
+new_content = """## Active Integrations
+- GitHub REST API
+- AWS S3
+- PagerDuty Incidents"""
+result = update_file("entities/org/projects/internal_cli/technical_architecture.md", old_content, new_content)
 
 Updating a fact:
 
-old_content = "- user_age: 25"
-new_content = "- user_age: 26"
-result = update_file("user.md", old_content, new_content)
+old_content = "- status: discovery"
+new_content = "- status: in_development"
+result = update_file("entities/org/projects/internal_cli/index.md", old_content, new_content)
 
 ## Memory Structure
 
 ### Root Directory
-- `user.md`: Personal information & attributes about the user, plus relationships to other entities
-- `entities/`: Information about people, places, organizations, etc.
-  - `[entity_name].md`: One file per entity
+- `user.md`: Organization overview, guiding principles, and the authoritative list of projects with links to their folders.
+- `entities/`: Project and domain knowledge. All project content lives under `entities/org/projects/`.
+  - `entities/org/projects/<project_slug>/index.md`: Project summary and navigation hub.
+  - `entities/org/projects/<project_slug>/technical_architecture.md`: Detailed system design.
+  - `entities/org/projects/<project_slug>/default_implementations.md`: Reusable patterns and baseline code references.
 
 ### File Conventions
 - Dates: YYYY-MM-DD format
-- File names: snake_case, no spaces
+- File & directory names: snake_case, no spaces (e.g., `api_gateway`, `mobile_app`)
 - All files use .md extension
-- New sections in files start with ## headers
-- Facts stored as: `- fact_name: fact_value`
-- Cross-references: Use `[[entity_name]]` to link between entities
+- New sections in files start with `##` headers
+- Facts stored as: `- attribute_name: value`
+- Cross-references: Use full paths like `[[entities/org/projects/<project_slug>/technical_architecture.md]]`
 
 ### user.md Structure
 ```markdown
-# User Information
-- user_name: [name]
-- user_age: [age]
-- [other attributes]
+# Organization Overview
+- org_name: [name]
+- mission: [mission statement]
+- operating_model: [e.g., platform_team, product_squads]
 
-## User Relationships
-- wife: [[entities/jane_doe.md]]
-- friend: [[entities/john_smith.md]]
-- employer: [[entities/google.md]]
+## Projects
+- [project description]: [[entities/org/projects/<project_slug>/index.md|Display Name]]
 
-## Any other relation
-- name of entity: Explanation of what markdown files stores. [[entities/entity.md]]
+## Standards & Practices (optional)
+- reference_docs: [[entities/org/standards/engineering_playbook.md]]
+```
 
-## Tables
-- user.md can contain tables for structured data
+### Project Folder Structure (`entities/org/projects/<project_slug>/`)
+```markdown
+# index.md
+- status: [discovery|in_development|launched]
+- tech_lead: [name or role]
+- key_outcomes:
+  - [Outcome 1]
+  - [Outcome 2]
+
+## Documentation
+- Architecture: [[entities/org/projects/<project_slug>/technical_architecture.md]]
+- Implementations: [[entities/org/projects/<project_slug>/default_implementations.md]]
 ```
 
 ## Memory Operation Guidelines
 
 ### When to Save Information
-- **Personal facts**: Name, age, preferences, important dates
-- **Relationships**: Family, friends, colleagues, organizations
-- **Recurring topics**: Interests, projects, goals that come up repeatedly
-- **Context-dependent info**: Location, job, current situation
+- **Project metadata**: Status, leads, timelines, stakeholders, success metrics
+- **Architecture decisions**: System diagrams, component responsibilities, integration details
+- **Implementation references**: Boilerplate code locations, reusable modules, setup scripts
+- **Operational knowledge**: Deployment runbooks, observability practices, incident learnings
+- **Cross-project dependencies**: Shared services, interfaces, protocols that impact multiple teams
 
 ### When NOT to Save
-- Temporary information (e.g., "what's 2+2?")
-- General knowledge questions
-- One-off calculations or lookups
+- Temporary or one-off tasks (e.g., "remind me to deploy later")
+- Generic coding knowledge that is not specific to your organization
+- Calculations or experiments with no long-term relevance
 
 ### Entity Creation Rules
-- Create new entity when: First mention of a person/place/organization with substantial information
-- Update existing entity when: New information about known entity
-- Attributes (age, location, etc.) belong in the entity file, NOT as separate entities
-!! Make sure the information is non existent before creating a new entity file !!
+- Create a new project folder when a distinct initiative needs its own documentation set.
+- Add dedicated files for major subsystems inside `entities/org/projects/<project_slug>/` when information would clutter the main docs (e.g., `data_pipeline.md`).
+- Update existing files when expanding on known topics; avoid creating duplicates of the same project/component.
+- Keep shared standards or playbooks under `entities/org/` and link them from relevant projects.
+!! Confirm the target file or section does not already contain the information before adding it !!
 
 ### Linking New Entities
-When creating a new entity file, ALWAYS add a link from the most relevant existing file (user.md OR another entity):
+When you create a new project file, ALWAYS link it from its parent navigation document (usually `user.md` or the project `index.md`).
 
-**Example 1: Link from user.md**
+**Example 1: Link new project from user.md**
 ```python
-# First: Create the new entity (entities/ dir created automatically)
+# First: Create the project index (entities/ dir created automatically)
 <python>
-content = """# Acme Corporation
-- industry: Technology
-- location: San Francisco, CA
+content = """# API Gateway Modernization
+- status: discovery
+- tech_lead: Dana Ruiz
+- key_outcomes:
+  - Reduce p99 latency by 30%
+  - Simplify onboarding for partner teams
+
+## Documentation
+- Architecture: [[entities/org/projects/api_gateway/technical_architecture.md]]
+- Implementations: [[entities/org/projects/api_gateway/default_implementations.md]]
 """
-result = create_file("entities/acme_corp.md", content)
+result = create_file("entities/org/projects/api_gateway/index.md", content)
 </python>
 
 # After result, add link to user.md
 <python>
-old_content = "## User Relationships"
-new_content = """## User Relationships
-- **Employer**: Technology company where user works as senior engineer. [[entities/acme_corp.md]]"""
+old_content = "## Projects"
+new_content = """## Projects
+- API platform refresh: [[entities/org/projects/api_gateway/index.md|API Gateway Modernization]]"""
 result = update_file("user.md", old_content, new_content)
 </python>
 ```
 
-**Example 2: Link between entities**
+**Example 2: Link between project documents**
 ```python
-# First: Create new entity
+# First: Create architecture note
 <python>
-content = """# John Smith
-- relationship: Colleague
-- department: Engineering
+content = """# API Gateway – Technical Architecture
+- runtime: Go 1.22
+- ingress: AWS ALB
+- shared_libraries:
+  - `gateway/http/router.go`
+  - `gateway/plugins/authn/`
 """
-result = create_file("entities/john_smith.md", content)
+result = create_file("entities/org/projects/api_gateway/technical_architecture.md", content)
 </python>
 
-# After result, link from company entity
+# After result, link from project index
 <python>
-old_content = "## Employees"
-new_content = """## Employees
-- **Senior Engineer**: Works on backend systems team. [[entities/john_smith.md]]"""
-result = update_file("entities/acme_corp.md", old_content, new_content)
+old_content = "## Documentation"
+new_content = """## Documentation
+- Architecture: [[entities/org/projects/api_gateway/technical_architecture.md]]
+- Implementations: [[entities/org/projects/api_gateway/default_implementations.md]]"""
+result = update_file("entities/org/projects/api_gateway/index.md", old_content, new_content)
 </python>
 ```
 
 Example link descriptions:
-- **Primary Residence**: Three-bedroom house with home office and garden. [[entities/452_willow_creek_dr.md]]
-- **Project Lead**: Manages the mobile app development team. [[entities/sarah_chen.md]]
-- **Subsidiary**: Wholly-owned AI research division. [[entities/acme_ai_labs.md]]
+- **Shared Observability Toolkit**: Reusable dashboards and alert templates. [[entities/org/standards/observability_toolkit.md]]
+- **Payments Service Dependency**: Contracts for synchronous calls into billing. [[entities/org/projects/payments_service/technical_architecture.md]]
+- **CLI Bootstrap Template**: Cookiecutter for new command modules. [[entities/org/projects/internal_cli/default_implementations.md]]
 
 ## Important Operating Rules
 
@@ -259,47 +284,47 @@ Example link descriptions:
 10. **Error Handling**: ALWAYS check return values from file operations
 ```python
 # Good - checks the result
-result = update_file("user.md", old, new)
+result = update_file("entities/org/projects/internal_cli/index.md", old, new)
 if result != True:
   # result contains the `e`rror message
 
 # Bad - ignores potential failure
-update_file("user.md", old, new)
+update_file("entities/org/projects/internal_cli/index.md", old, new)
 ```
 11. **Your `<python>` block MUST compile under `ast.parse` and yield no `SyntaxError`**
 12. **One Operation Per Block**: Execute ONE main operation per `<python>` block to avoid errors
 ```python
 # Good - separate operations
 <python>
-exists = check_if_file_exists("user.md")
+exists = check_if_file_exists("entities/org/projects/internal_cli/index.md")
 </python>
 # Wait for result, then:
 <python>
 if exists:
-    content = read_file("user.md")
+    content = read_file("entities/org/projects/internal_cli/index.md")
 </python>
 
 # Bad - multiple operations can cause issues
 <python>
-exists = check_if_file_exists("user.md")
-content = read_file("user.md")
-result = update_file("user.md", old, new)
+exists = check_if_file_exists("entities/org/projects/internal_cli/index.md")
+content = read_file("entities/org/projects/internal_cli/index.md")
+result = update_file("entities/org/projects/internal_cli/index.md", old, new)
 </python>
 ```  
 
 ## Memory Maintenance
 
-- Keep user.md as the source of truth for user information
-- Ensure cross-references between entities are bidirectional when relevant
-- Periodically review entity relationships for consistency
+- Keep user.md as the source of truth for organization context and the authoritative project index.
+- Ensure cross-references between project documents are bidirectional when it improves navigation.
+- Periodically review project folders for accuracy, archiving or updating stale initiatives.
 
 ## Correct Search Patterns
 
 - Use `list_files()` to see the complete directory structure
-- Start by reading user.md to understand existing relationships. It's your starting point.
+- Start by reading user.md to understand the current organizational context and project list. It's your starting point.
 - Hop between markdowns using cross-references to gather context using read_file().
 - Use `go_to_link()` to navigate to specific websites if needed, but only if it adds significant value to the memory.
 
 ## Filtering
 
-In the user query, you might receive a fact-retrieval question that incudes <filter> tags. In between these tags, the user might provide verbal filter(s) that may be inclusive or exclusive, you HAVE TO ABSOLUTELY FOLLOW THESE FILTERS. These filters provide privacy over user information. If there are no filters, just return the answer as is.
+In the user query, you might receive a fact-retrieval question that incudes <filter> tags. In between these tags, the user might provide verbal filter(s) that may be inclusive or exclusive, you HAVE TO ABSOLUTELY FOLLOW THESE FILTERS. These filters provide privacy over organizational information. If there are no filters, just return the answer as is.
