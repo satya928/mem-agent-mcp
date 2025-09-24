@@ -23,49 +23,76 @@ This is an MCP server for our model [driaforall/mem-agent](https://huggingface.c
 
 ## Memory Instructions
 
-- Each memory directory should follow the structure below:
+- Each memory directory now follows an organization/project hierarchy:
 ```
 memory/
     ├── user.md
     └── entities/
-        └── [entity_name_1].md
-        └── [entity_name_2].md
-        └── ...
+        └── org/
+            └── projects/
+                └── [project_slug]/
+                    ├── index.md
+                    ├── technical_architecture.md
+                    └── default_implementations.md
 ```
 
-- `user.md` is the main file that contains information about the user and their relationships, accompanied by links to the enity file in the format of `[[entities/[entity_name].md]]` per relationship. The link format should be followed strictly.
-- `entities/` is the directory that contains the entity files.
-- Each entity file follows the same structure as `user.md`.
+- `user.md` acts as the organizational home page. Use it to capture high-level information about the organization and a `## Projects` section that links to each project index in the format `[[entities/org/projects/<project_slug>/index.md|Project Name]]`.
+- Every project lives under `entities/org/projects/` in its own folder. The folder contains:
+  - `index.md`: Project overview, goals, status, and navigation links to the detailed files in the same folder.
+  - `technical_architecture.md`: System architecture, diagrams, component breakdowns, and integration notes.
+  - `default_implementations.md`: Reference implementations, coding standards, reusable modules, and known patterns.
+- Add more files inside a project folder as needed (e.g., `testing_strategy.md`, `backlog.md`), but keep all cross-project information discoverable through `user.md` → `Projects` → `[project]/index.md` links.
 - Modifying the memory manually does not require restarting the MCP server.
 
 ### Example user.md
 
 ```markdown
-# User Information
-- user_name: John Doe
-- birth_date: 1990-01-01
-- birth_location: New York, USA
-- living_location: Enschede, Netherlands
-- zodiac_sign: Aquarius
+# Organization Overview
+- org_name: Example Org
+- mission: Build maintainable internal tools
 
-## User Relationships
-- company: [[entities/acme_corp.md]]
-- mother: [[entities/jane_doe.md]]
+## Projects
+- Internal CLI tooling: [[entities/org/projects/internal_cli/index.md|Internal CLI]]
+- Analytics dashboard: [[entities/org/projects/analytics_dashboard/index.md|Analytics Dashboard]]
 ```
 
-### Example entity files (jane_doe.md and acme_corp.md)
+### Example project files
+
+`entities/org/projects/internal_cli/index.md`
 
 ```markdown
-# Jane Doe
-- relationship: Mother
-- birth_date: 1965-01-01
-- birth_location: New York, USA
+# Internal CLI
+- purpose: Standardize automation for engineers
+- status: In production
+
+## Documentation
+- Architecture: [[entities/org/projects/internal_cli/technical_architecture.md]]
+- Implementations: [[entities/org/projects/internal_cli/default_implementations.md]]
 ```
 
-```markdown 
-# Acme Corporation
-- industry: Software Development
-- location: Enschede, Netherlands
+`entities/org/projects/internal_cli/technical_architecture.md`
+
+```markdown
+# Internal CLI – Technical Architecture
+- runtime: Python 3.11
+- orchestrator: Invoke tasks triggered via GitHub Actions
+- key_components:
+  - command_router
+  - plugin_loader
+- integrations:
+  - GitHub REST API
+  - AWS S3
+```
+
+`entities/org/projects/internal_cli/default_implementations.md`
+
+```markdown
+# Internal CLI – Default Implementations
+- bootstrap_script: `scripts/bootstrap.py`
+- shared_libraries:
+  - `cli/core.py`
+  - `cli/plugins/`
+- testing_strategy: pytest with coverage threshold 90%
 ```
 
 ## Filtering
@@ -273,27 +300,34 @@ python memory_connectors/memory_connect.py google-docs "1ABC123DEF456_folder_id"
 
 ### Memory Organization
 
-The connectors automatically organize your conversations into:
+Whether you ingest data manually or through a connector, align the output with the organization/project hierarchy so the agent can navigate consistently:
 
-- **Topics**: Conversations grouped by subject (AI Agents, Programming, Product Strategy, etc.)
-- **User Profile**: Your communication style and preferences
-- **Entity Links**: Cross-referenced relationships and projects
-- **Search Strategy**: Optimized for mem-agent discovery
+- **Organization overview**: `user.md` summarizes mission, guiding principles, and the project roster.
+- **Project directories**: Each project gets its own folder under `entities/org/projects/` with `index.md`, `technical_architecture.md`, and `default_implementations.md` at minimum.
+- **Deep dives**: Additional files (e.g., `runbooks/incident_playbook.md`, `notes/2024_planning.md`) can live alongside the core documents when a project needs more depth.
+- **Shared standards**: Cross-cutting practices go under `entities/org/standards/` so multiple projects can link to them.
 
 Example organized structure:
 ```
-memory/mcp-server/
-├── user.md                     # Your profile and navigation
+memory/org-knowledge-base/
+├── user.md                         # Org overview and project navigation
 └── entities/
-    └── chatgpt-history/
-        ├── index.md            # Overview and usage examples
-        ├── topics/             # Topic-organized conversation lists
-        │   ├── dria.md
-        │   ├── ai-agents.md
-        │   └── programming.md
-        └── conversations/      # Individual conversation files
-            ├── conv_0-project-discussion.md
-            └── conv_1-technical-planning.md
+    └── org/
+        ├── standards/
+        │   └── engineering_playbook.md
+        └── projects/
+            ├── internal_cli/
+            │   ├── index.md
+            │   ├── technical_architecture.md
+            │   ├── default_implementations.md
+            │   └── runbooks/
+            │       └── release_checklist.md
+            └── api_gateway/
+                ├── index.md
+                ├── technical_architecture.md
+                ├── default_implementations.md
+                └── notes/
+                    └── 2024_q2_scope.md
   
 ### Testing Your Memory
 
